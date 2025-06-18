@@ -20,6 +20,7 @@ import initAnalytics from './analytics.js';
 import initConfig from './config.js';
 import addPageEvent from './addpage.js';
 import openInSharepointEvent from './openinsharepoint.js';
+import initFullscreenImage from './fullscreen-image.js';
 
 /**
  * Builds hero block and prepends to main in a new section.
@@ -166,9 +167,11 @@ async function loadLazy(doc) {
   loadFooter(doc.querySelector('footer'));
 
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
+  loadCSS(`${window.hlx.codeBasePath}/styles/image-modal.css`);
   loadFonts()
   if(!window.location.href.includes('about:srcdoc')) {
     modalWindow();
+    initFullscreenImage();
   }
   initAnalytics();
   initConfig();
