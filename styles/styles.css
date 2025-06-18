@@ -1,0 +1,451 @@
+/*
+ * Copyright 2020 Adobe. All rights reserved.
+ * This file is licensed to you under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License. You may obtain a copy
+ * of the License at http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under
+ * the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
+ * OF ANY KIND, either express or implied. See the License for the specific language
+ * governing permissions and limitations under the License.
+ */
+
+:root {
+  /* colors */
+  --link-color: #000000;
+  --link-hover-color: #136ff6;
+  --background-color: white;
+  --light-color: #eee;
+  --dark-color: #ccc;
+  --text-color: black;
+
+  /* fonts */
+  --body-font-family: adobe-clean, adobe-clean-fallback, arial, helvetica;
+  --heading-font-family: var(--body-font-family);
+  --fixed-font-family: adobe-clean, "Adobe Clean", menlo, consolas, "Liberation Mono",
+    monospace;
+
+  /* body sizes */
+  --body-font-size-m: 16px;
+  --body-font-size-s: 14px;
+  --body-font-size-xs: 12px;
+
+  /* heading sizes */
+  --heading-font-size-xxl: 32px;
+  --heading-font-size-xl: 24px;
+  --heading-font-size-l: 18.72px;
+  --heading-font-size-m: 16px;
+  --heading-font-size-s: 13.28px;
+  --heading-font-size-xs: 10.72px;
+
+  /* nav height */
+  --nav-height: 64px;
+}
+
+@font-face {
+  font-family: adobe-clean-fallback;
+  size-adjust: 100.06%;
+  ascent-override: 95%;
+  src: local("sans-serif");
+}
+
+@media (width >= 900px) {
+  :root {
+    --heading-font-size-xxl: 32px;
+    --heading-font-size-xl: 24px;
+    --heading-font-size-l: 18.72px;
+    --heading-font-size-m: 16px;
+    --heading-font-size-s: 13.28px;
+    --heading-font-size-xs: 10.72px;
+  }
+}
+
+body {
+  font-size: var(--body-font-size-m);
+  margin: 0;
+  font-family: var(--body-font-family);
+  line-height: 1.6;
+  color: var(--text-color);
+  background-color: var(--background-color);
+  display: none;
+}
+
+body.appear {
+  display: block;
+}
+
+header {
+  height: var(--nav-height);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--heading-font-family);
+  font-weight: 600;
+  line-height: 1.25;
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+  scroll-margin: calc(var(--nav-height) + 1em);
+  color:#2e3d52;
+  font-weight: 600;
+}
+
+h1 {
+  font-size: var(--heading-font-size-xxl);
+}
+h2 {
+  font-size: var(--heading-font-size-xl);
+}
+h3 {
+  font-size: var(--heading-font-size-l);
+}
+h4 {
+  font-size: var(--heading-font-size-m);
+}
+h5 {
+  font-size: var(--heading-font-size-s);
+}
+h6 {
+  font-size: var(--heading-font-size-xs);
+}
+
+code,
+pre {
+  font-family: var(--fixed-font-family);
+  font-size: var(--body-font-size-s);
+}
+
+code {
+  padding: 0.125em;
+}
+
+pre {
+  overflow: scroll;
+}
+
+main pre {
+  background-color: var(--light-color);
+  padding: 1em;
+  border-radius: 0.25em;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+code,
+pre,
+samp {
+  font-family: var(--fixed-font-family);
+  font-size: var(--body-font-size-s);
+}
+
+code,
+samp {
+  padding: 0.125em;
+}
+
+pre {
+  overflow: scroll;
+}
+
+/* links */
+a:any-link {
+  text-decoration: underline;
+  color:#4b5563;
+}
+
+a:hover {
+  text-decoration: underline;
+  color: var(--link-hover-color);
+}
+
+/* buttons */
+/* a.button:any-link,
+button {
+  font-family: var(--body-font-family);
+  display: inline-block;
+  box-sizing: border-box;
+  text-decoration: none;
+  border: 2px solid transparent;
+  padding: 5px 30px;
+  text-align: center;
+  font-style: normal;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--background-color);
+  background-color: var(--link-color);
+  margin: 16px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-radius: 30px;
+}
+
+a.button:hover,
+a.button:focus,
+button:hover,
+button:focus {
+  background-color: var(--link-hover-color);
+  cursor: pointer;
+}
+
+button:disabled,
+button:disabled:hover {
+  background-color: var(--light-color);
+  cursor: unset;
+}
+
+a.button.secondary,
+button.secondary {
+  background-color: unset;
+  border: 2px solid currentcolor;
+  color: var(--text-color);
+} */
+
+main img {
+  max-width: 100%;
+  width: auto;
+  height: auto;
+}
+
+.icon {
+  display: inline-block;
+  height: 24px;
+  width: 24px;
+}
+
+.icon img {
+  height: 100%;
+  width: 100%;
+}
+
+main {
+  display: flex;
+}
+
+/* sections */
+main .section {
+  padding: 64px 16px;
+  padding-left: 8px;
+  min-height: 80vh;
+  width: 65vw;
+  display: flex;
+  flex-direction: column;
+}
+
+
+main>.section>div { 
+  padding: 10px 0;
+}
+
+
+
+p, li {
+  color:#4b5563;
+  font-weight: 400;
+}
+.title p {
+  color:#2e3d52;
+  font-weight: 600;
+}
+
+
+  /* Modal Style - Start */
+  .modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 12; /* Sit on top */
+    padding-top: 100px; /* Location of the box */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+  }
+  .modal-content {
+    background-color: #fefefe;
+    margin: auto;
+    padding: 0;
+    border: 1px solid #888;
+    width: 50%;
+    border-radius: 12px;
+    position: relative;
+  }
+  .close {
+    color: #d0e4f9;
+    float: right;
+    font-size: 40px;
+    line-height: 40px;
+    font-weight: 100;
+    position: absolute;
+    right: 20px;
+    top: 15px;
+    font-family: sans-serif;
+  }
+  .close:hover,
+  .close:focus {
+    color: #aaaaaa;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .myImageDiv {
+    position: fixed;
+    right: 30px;
+    bottom: 20px;
+    cursor: pointer;
+  }
+  .modal-img {
+    width: 60px;
+    height: auto;
+  }
+/* Modal Style - End */
+
+main .section p {
+  margin: 10px 0;
+}
+
+
+@media (max-width: 1000px) { 
+  .modal-content {
+    width: 90%;
+  }
+}
+
+@media (width >= 600px) {
+  main .section {
+    padding: 64px 32px;
+  }
+}
+
+
+@media (max-width: 900px) {
+
+  main .section {
+    width: 95vw;
+  }
+  
+}
+
+
+
+/* Floating Button */
+.floating-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: #fa0f00;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 50px;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Modal */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+  background-color: #fff;
+  margin: 10% auto;
+  padding: 20px;
+  border-radius: 8px;
+  width: auto;
+  height:auto;
+  max-width: 600px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  position: relative;
+  box-sizing: border-box; /* Ensure padding is included in the width */
+  display: flex;
+  justify-content: space-around;
+}
+
+.modal-question {
+  width: 450px;
+}
+
+/* Close Button */
+.close {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  color: #000;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+/* Form Styling */
+form {
+  display: flex;
+  flex-direction: column;
+}
+
+form label {
+  margin-top: 10px;
+}
+
+form input, form textarea {
+  padding: 10px;
+  margin-top: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 100%;
+  box-sizing: border-box; /* Include padding and border in the element's width */
+}
+
+form textarea {
+  resize: vertical; /* Allow resizing vertically but not horizontally */
+}
+
+/* Submit button */
+form button {
+  background-color: #fa0f00;
+  color: white;
+  padding: 10px;
+  border: none;
+  border-radius: 4px;
+  margin-top: 15px;
+  cursor: pointer;
+  box-sizing: border-box;
+  outline: none; /* Remove the blue outline */
+}
+
+/* Submit button hover effect */
+form button:hover {
+  background-color: #d80b00; /* Darker red on hover */
+  color: #f9f9f9; /* You can change this to pale yellow, e.g., #ffff99 */
+}
+
+/* Remove focus outline when clicked */
+form button:focus {
+  outline: none; /* Ensures no blue border appears on focus */
+}
+
+
+/* Thank You Message */
+#thankYouMessage {
+  text-align: center;
+}
+
+#askGenAI {
+  background-color: #fa0f00;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}

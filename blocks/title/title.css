@@ -1,0 +1,41 @@
+.heading-1 {
+    display: block;
+    font-size: 2em;
+    font-weight: bold;
+    unicode-bidi: isolate;
+}
+
+.heading-2 {
+    display: block;
+    font-size: 1.5em;
+    font-weight: bold;
+    unicode-bidi: isolate;
+}
+
+.heading-3{
+    display: block;
+    font-size: 1.17em;
+    font-weight: bold;
+    unicode-bidi: isolate;
+}
+
+.heading-4 {
+    display: block;
+    font-size: 1em; /* Standard font size */
+    font-weight: bold;
+    unicode-bidi: isolate;
+}
+
+.heading-5 {
+    display: block;
+    font-size: 0.83em; /* Slightly smaller than standard */
+    font-weight: bold;
+    unicode-bidi: isolate;
+}
+
+.heading-6 {
+    display: block;
+    font-size: 0.67em; /* Smallest heading size */
+    font-weight: bold;
+    unicode-bidi: isolate;
+}

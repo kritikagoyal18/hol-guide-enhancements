@@ -1,0 +1,16 @@
+footer {
+  padding: 2rem;
+  font-size: var(--body-font-size-s);
+  background: #f8f8f8;
+  border-top: 1px solid lightgray;
+}
+
+footer .footer {
+  max-width: 1200px;
+  margin: auto;
+}
+
+footer .footer p {
+  margin: 0;
+  text-align: center;
+}
