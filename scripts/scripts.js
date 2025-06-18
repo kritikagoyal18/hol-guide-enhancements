@@ -21,6 +21,7 @@ import initConfig from './config.js';
 import addPageEvent from './addpage.js';
 import openInSharepointEvent from './openinsharepoint.js';
 import initFullscreenImage from './fullscreen-image.js';
+import { initTheme } from './theme.js';
 
 /**
  * Builds hero block and prepends to main in a new section.
@@ -188,6 +189,7 @@ function loadDelayed() {
 }
 
 async function loadPage() {
+  initTheme();
   await loadEager(document);
   await loadLazy(document);
   loadDelayed();

@@ -449,3 +449,209 @@ form button:focus {
   border-radius: 4px;
   cursor: pointer;
 }
+
+/* Dark theme variables */
+[data-theme="dark"] {
+    --link-color: #66a3ff;
+    --link-hover-color: #99c2ff;
+    --background-color: #1a1a1a;
+    --light-color: #333;
+    --dark-color: #444;
+    --text-color: #ffffff;
+    
+    /* Additional dark theme colors */
+    --heading-color: #ffffff;
+    --code-bg: #2d2d2d;
+    --border-color: #444;
+    --nav-bg: #242424;
+    --modal-bg: #2d2d2d;
+    
+    /* Navigation colors */
+    --nav-bg: #242424;
+    --nav-text: #ffffff;
+    --nav-hover-bg: #333333;
+    --nav-active-bg: #1a365d;
+    --nav-active-text: #66a3ff;
+    --nav-border: #444444;
+    
+    /* Left navigation specific */
+    --leftnav-bg: #1a1a1a;
+    --leftnav-text: #e0e0e0;
+    --leftnav-hover-bg: #333333;
+    --leftnav-active-bg: #1a365d;
+    --leftnav-active-text: #66a3ff;
+    --leftnav-border: #444444;
+    
+    /* Header specific colors */
+    --header-bg: #242424;
+    --header-text: #ffffff;
+    --header-nav-text: #e0e0e0;
+    --header-hover-bg: #333333;
+    --header-border: #444444;
+
+    /* Exception for tip and note blocks */
+    .tip p,
+    .tip strong,
+    .note p,
+    .note strong {
+        color: #323232 !important; /* Using !important to ensure it overrides any other dark theme styles */
+    }
+
+    /* Preserve the original background colors */
+    .tip {
+        background-color: #ffeddf !important;
+    }
+
+    .note {
+        background-color: #d9edf7 !important;
+    }
+
+    /* Ensure borders are visible in dark mode */
+    .tip,
+    .note {
+        border-color: #a8d4eb !important;
+    }
+}
+
+/* Dark theme specific overrides */
+[data-theme="dark"] {
+    /* Headers */
+    h1, h2, h3, h4, h5, h6 {
+        color: var(--heading-color);
+    }
+
+    /* Code blocks */
+    main pre {
+        background-color: var(--code-bg);
+    }
+
+    /* Navigation */
+    header .nav-wrapper {
+        background-color: var(--nav-bg);
+    }
+
+    /* Text and links */
+    p, li {
+        color: var(--text-color);
+    }
+
+    a:any-link {
+        color: var(--link-color);
+    }
+
+    /* Modal windows */
+    .modal-content {
+        background-color: var(--modal-bg);
+        border-color: var(--border-color);
+    }
+
+    /* Header */
+    header .nav-wrapper {
+        background-color: var(--nav-bg);
+    }
+    
+    header nav p, 
+    header nav a:any-link {
+        color: var(--nav-text);
+    }
+
+    /* Left Navigation */
+    .left-navigation-wrapper {
+        background: var(--leftnav-bg);
+        border-right: 1px solid var(--leftnav-border);
+    }
+
+    .left-navigation p, 
+    .left-navigation li, 
+    .left-navigation li a, 
+    .nav-heading p a, 
+    .left-navigation h3 {
+        color: var(--leftnav-text);
+    }
+
+    .left-navigation h3:hover,
+    .left-navigation li a:hover, 
+    .left-navigation p:hover, 
+    .nav-heading p a:hover {
+        background-color: var(--leftnav-hover-bg);
+    }
+
+    .left-navigation li .active {
+        background-color: var(--leftnav-active-bg);
+        color: var(--leftnav-active-text);
+    }
+
+    /* Mobile overlay */
+    @media (max-width: 900px) {
+        .left-navigation-wrapper.overlay {
+            background: var(--leftnav-bg);
+        }
+    }
+
+    /* Footer */
+    footer {
+        background-color: var(--nav-bg);
+        border-top: 1px solid var(--nav-border);
+    }
+
+    footer p,
+    footer a:any-link {
+        color: var(--nav-text);
+    }
+
+    /* Header overrides */
+    header .nav-wrapper {
+        background-color: var(--header-bg);
+        border-bottom: 1px solid var(--header-border);
+    }
+
+    header nav p {
+        color: var(--header-nav-text);
+    }
+
+    /* Preserve the existing hover states but update colors */
+    header nav .nav-sections > ul > li > ul {
+        background-color: var(--header-bg);
+        border: 1px solid var(--header-border);
+    }
+
+    /* Handle icons in dark mode */
+    header nav .nav-tools img,
+    header nav .nav-hamburger img {
+        filter: invert(1);
+    }
+
+    /* Ensure dropdown arrows are visible */
+    header nav .nav-sections .nav-drop::after {
+        border-color: var(--header-nav-text);
+    }
+
+    /* Hamburger menu in dark mode */
+    header nav .nav-hamburger button {
+        background-color: var(--header-bg);
+    }
+
+    header nav[aria-expanded="true"] .nav-sections {
+        background-color: var(--header-bg);
+    }
+
+    /* Ensure expanded navigation is visible */
+    @media (max-width: 900px) {
+        header nav[aria-expanded="true"] {
+            background-color: var(--header-bg);
+        }
+    }
+}
+
+[data-theme="dark"] .theme-toggle img {
+    filter: invert(1);
+}
+
+/* Add smooth transitions for theme switching */
+header .nav-wrapper,
+header nav,
+header nav p,
+header nav .nav-sections,
+header nav .nav-hamburger button {
+    transition: background-color 0.3s ease, color 0.3s ease;
+}

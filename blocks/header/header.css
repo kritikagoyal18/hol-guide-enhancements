@@ -282,8 +282,27 @@ header nav .nav-tools .icon-help {
   cursor: pointer;
 }
 
+/* Theme toggle button */
+header nav .nav-tools .theme-toggle {
+    margin-right: 1rem;
+    cursor: pointer;
+}
+
+header nav .nav-tools .theme-toggle button {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+header nav .nav-tools .theme-toggle img {
+    width: 22px;
+    height: 22px;
+}
+
 #nav {
-  background-color: rgb(255, 255, 255);
   color: rgb(75, 75, 75);
   font-family: "adobe-clean", sans-serif;
   font-size: 16px;

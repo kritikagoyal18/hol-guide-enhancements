@@ -144,6 +144,26 @@ export default async function decorate(block) {
     toggleMenu(nav, navSections, isDesktop.matches);
     isDesktop.addEventListener('change', () => toggleMenu(nav, navSections, isDesktop.matches));
 
+    // Add theme toggle button to nav-tools
+    const navTools = nav.querySelector('.nav-tools');
+    if (navTools) {
+        const themeButton = document.createElement('div');
+        themeButton.classList.add('theme-toggle');
+        themeButton.innerHTML = `
+            <button aria-label="Toggle theme">
+                <img src="/icons/moon.svg" alt="Switch to dark mode" loading="lazy">
+            </button>
+        `;
+        themeButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            // Import dynamically to avoid circular dependencies
+            import('../../scripts/theme.js').then(module => {
+                module.toggleTheme();
+            });
+        });
+        navTools.insertBefore(themeButton, navTools.firstChild);
+    }
+
     decorateIcons(nav);
     const navWrapper = document.createElement('div');
     navWrapper.className = 'nav-wrapper';
@@ -155,14 +175,12 @@ export default async function decorate(block) {
 
 // Help icon click will trigger mailto:hol@adobe.com
 setTimeout(function(){
-  document.getElementsByClassName("nav-tools")[0].addEventListener("click", function(){
-    console.log("icon help");
-    window.location.href = "mailto:hol@adobe.com";
-  });
-},1000);
-
-
-
-
-
-
+    const helpIcon = document.querySelector(".nav-tools .icon-help");
+    if (helpIcon) {
+        helpIcon.addEventListener("click", function(e){
+            e.stopPropagation();
+            console.log("icon help");
+            window.location.href = "mailto:hol@adobe.com";
+        });
+    }
+}, 1000);
