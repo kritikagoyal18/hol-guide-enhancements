@@ -21,7 +21,6 @@ import initConfig from './config.js';
 import addPageEvent from './addpage.js';
 import openInSharepointEvent from './openinsharepoint.js';
 import initFullscreenImage from './fullscreen-image.js';
-import downloadPdfEvent from './downloadPdf.js';
 
 /**
  * Builds hero block and prepends to main in a new section.
@@ -197,4 +196,3 @@ async function loadPage() {
 loadPage();
 addPageEvent();
 openInSharepointEvent();
-downloadPdfEvent();

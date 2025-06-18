@@ -34,12 +34,6 @@
       "title": "Open in SharePoint",
       "environments": ["preview","live"],
       "event": "openInSharepoint"
-    },
-    {
-      "id": "downloadPdf",
-      "title": "Download PDF",
-      "environments": ["dev","edit","preview","live"],
-      "event": "downloadPdf"
     }
   ]
 }
