@@ -1,5 +1,3 @@
-import { getMetadata } from "../../scripts/aem.js";
-
 let counter = 0;
 
 async function generatePDF() {
