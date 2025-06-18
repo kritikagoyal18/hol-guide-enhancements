@@ -452,7 +452,7 @@ form button:focus {
 
 /* Dark theme variables */
 [data-theme="dark"] {
-    --link-color: #66a3ff;
+    --link-color: #ffffff;
     --link-hover-color: #99c2ff;
     --background-color: #1a1a1a;
     --light-color: #333;
@@ -645,13 +645,4 @@ form button:focus {
 
 [data-theme="dark"] .theme-toggle img {
     filter: invert(1);
-}
-
-/* Add smooth transitions for theme switching */
-header .nav-wrapper,
-header nav,
-header nav p,
-header nav .nav-sections,
-header nav .nav-hamburger button {
-    transition: background-color 0.3s ease, color 0.3s ease;
 }

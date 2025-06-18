@@ -147,16 +147,18 @@ export default async function decorate(block) {
     // Add theme toggle button to nav-tools
     const navTools = nav.querySelector('.nav-tools');
     if (navTools) {
+        const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
         const themeButton = document.createElement('div');
         themeButton.classList.add('theme-toggle');
         themeButton.innerHTML = `
             <button aria-label="Toggle theme">
-                <img src="/icons/moon.svg" alt="Switch to dark mode" loading="lazy">
+                <img src="/icons/${currentTheme === 'dark' ? 'sun' : 'moon'}.svg" 
+                     alt="${currentTheme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}" 
+                     loading="lazy">
             </button>
         `;
         themeButton.addEventListener('click', (e) => {
             e.stopPropagation();
-            // Import dynamically to avoid circular dependencies
             import('../../scripts/theme.js').then(module => {
                 module.toggleTheme();
             });
