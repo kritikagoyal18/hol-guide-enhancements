@@ -14,7 +14,7 @@ export default function downloadPdfEvent() {
     if (sidekick) {
       sidekick.addEventListener('custom:downloadPdf', () => {
         if (counter === 0) {
-          downloadPDF();
+          console.log('downloadPdf');
         }
         counter++;
         if (counter === 5) {
