@@ -78,74 +78,62 @@ async function fetchPageContent(url) {
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = html;
     
-    // Get all content sections from the main content
-    const sections = tempDiv.querySelectorAll('div > div');
-    if (!sections.length) {
-      console.error('No sections found in', plainUrl);
-      return null;
-    }
-
     // Create a wrapper for the content
     const contentSection = document.createElement('div');
     contentSection.className = 'pdf-section';
     
-    // Process each section
-    sections.forEach((section, index) => {
-      if (section.classList.contains('next-button-container')) {
-        return;
-      }
+    // Get the main content container - should be the first direct child div
+    const mainContent = tempDiv.querySelector(':scope > div');
+    if (!mainContent) {
+      console.error('No main content found in', plainUrl);
+      return null;
+    }
 
-      const sectionClone = section.cloneNode(true);
+    // Clean up the content before processing
+    const elementsToRemove = [
+      'header',
+      'footer',
+      'aside',
+      '.next-button-container',
+      '.floating-btn',
+      '.modal',
+      '.sidekick',
+      'aem-sidekick'
+    ];
 
-      // Clean up the section
-      const elementsToRemove = [
-        'header',
-        'footer',
-        'aside',
-        '.next-button-container',
-        '.floating-btn',
-        '.modal',
-        '.sidekick',
-        'aem-sidekick'
-      ];
-
-      elementsToRemove.forEach(selector => {
-        sectionClone.querySelectorAll(selector).forEach(el => el.remove());
-      });
-
-      // Process images
-      sectionClone.querySelectorAll('img').forEach(img => {
-        // Convert relative image paths to absolute
-        if (img.src && (img.src.startsWith('./') || img.src.startsWith('/'))) {
-          const urlParts = plainUrl.split('/');
-          urlParts.pop(); // Remove the filename
-          const basePath = urlParts.join('/');
-          img.src = img.src.replace(/^[./]+/, `${basePath}/`);
-        }
-        
-        // Process image styles
-        processImage(img);
-      });
-
-      // Add spacing between sections
-      if (index > 0) {
-        sectionClone.style.marginTop = '2em';
-      }
-
-      // Add page break hints for headings
-      sectionClone.querySelectorAll('h1, h2').forEach(heading => {
-        heading.classList.add('page-break-before');
-      });
-
-      // Prevent breaks within important elements
-      const noBreakElements = sectionClone.querySelectorAll('pre, table, .note, .tip, figure');
-      noBreakElements.forEach(elem => {
-        elem.style.pageBreakInside = 'avoid';
-        elem.style.breakInside = 'avoid';
-      });
-
-      contentSection.appendChild(sectionClone);
+    elementsToRemove.forEach(selector => {
+      mainContent.querySelectorAll(selector).forEach(el => el.remove());
     });
+
+    // Process images
+    mainContent.querySelectorAll('img').forEach(img => {
+      // Convert relative image paths to absolute
+      if (img.src && (img.src.startsWith('./') || img.src.startsWith('/'))) {
+        const urlParts = plainUrl.split('/');
+        urlParts.pop(); // Remove the filename
+        const basePath = urlParts.join('/');
+        img.src = img.src.replace(/^[./]+/, `${basePath}/`);
+      }
+      
+      // Process image styles
+      processImage(img);
+    });
+
+    // Add page break hints for headings
+    mainContent.querySelectorAll('h1, h2').forEach(heading => {
+      heading.classList.add('page-break-before');
+    });
+
+    // Prevent breaks within important elements
+    const noBreakElements = mainContent.querySelectorAll('pre, table, .note, .tip, figure');
+    noBreakElements.forEach(elem => {
+      elem.style.pageBreakInside = 'avoid';
+      elem.style.breakInside = 'avoid';
+    });
+
+    // Append the processed content
+    contentSection.appendChild(mainContent);
+    
     return contentSection;
   } catch (error) {
     console.error(`Error fetching page ${url}:`, error);
@@ -180,6 +168,7 @@ export default function downloadPdfEvent() {
 
             // Get all page URLs
             const pageUrls = await getAllPageUrls();
+            console.log('Pages to be included in PDF:', pageUrls);
             
             if (!pageUrls.length) {
               throw new Error('No pages found to generate PDF');
@@ -210,7 +199,7 @@ export default function downloadPdfEvent() {
                 successfulPages++;
               }
               processedPages++;
-              //if (processedPages == 2) break;
+              // if (processedPages == 2) break;
             }
 
             if (successfulPages === 0) {
@@ -218,7 +207,6 @@ export default function downloadPdfEvent() {
             }
 
             pdfContainer.appendChild(contentWrapper);
-            console.log('Final --- PDF container structure:', pdfContainer.innerHTML);
 
             // Create temporary container
             const tempContainer = document.createElement('div');
@@ -297,6 +285,7 @@ export default function downloadPdfEvent() {
               .save();
 
             // Clean up
+            console.log('tempContainer', tempContainer);
             document.body.removeChild(tempContainer);
             document.body.removeChild(progressModal);
             
