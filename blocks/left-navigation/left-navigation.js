@@ -68,7 +68,10 @@ function loadActiveLinks(){
   // Find the parent container of the active link and show its dropdown
   let activeContainer = document.querySelector(".active")?.closest("ul");
   let closestNavHeading = document.querySelector(".active")?.closest(".nav-heading");
-  let activeSectionHeader = closestNavHeading.querySelector("h3");
+  let activeSectionHeader = null;
+  if (closestNavHeading) {
+    activeSectionHeader = closestNavHeading.querySelector("h3");
+  }
 
   if (activeContainer) {
     const activeParagraph = activeContainer.previousElementSibling;
