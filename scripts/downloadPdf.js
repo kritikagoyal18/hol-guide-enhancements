@@ -1,5 +1,3 @@
-import { downloadPDF } from './pdf-download.js';
-
 let counter = 0;
 
 export default function downloadPdfEvent() {
