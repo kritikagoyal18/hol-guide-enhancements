@@ -27,7 +27,7 @@ export async function downloadPDF() {
     const currentPage = window.location.pathname;
     
     // Use Vercel function URL
-    const apiUrl = `${window.location.origin}/api/generate-pdf`;
+    const apiUrl = 'https://hol-guide-enhancements.vercel.app/api/generate-pdf';
     
     console.log('Requesting PDF for:', currentPage);
     console.log('API URL:', apiUrl);
