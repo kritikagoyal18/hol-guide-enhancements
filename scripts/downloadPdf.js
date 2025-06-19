@@ -1,7 +1,157 @@
+import { getMetadata } from "./aem.js";
+
 // Flag to track if PDF generation is in progress
 let isGenerating = false;
 // Flag to track if event listener is attached
 let isListenerAttached = false;
+
+// Helper function to create a progress modal
+function createProgressModal() {
+  const modal = document.createElement('div');
+  modal.className = 'pdf-progress-modal';
+  modal.innerHTML = `
+    <div class="pdf-progress-content">
+      <h3>Generating PDF</h3>
+      <div class="pdf-progress-status">Preparing...</div>
+      <div class="pdf-progress-bar">
+        <div class="pdf-progress-fill"></div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  return modal;
+}
+
+// Helper function to update progress
+function updateProgress(modal, status, progress) {
+  const statusEl = modal.querySelector('.pdf-progress-status');
+  const progressFill = modal.querySelector('.pdf-progress-fill');
+  statusEl.textContent = status;
+  if (progress !== undefined) {
+    progressFill.style.width = `${progress}%`;
+  }
+}
+
+// Helper function to extract all page URLs from navigation
+async function getAllPageUrls() {
+  const urls = [];
+  const leftNavMeta = getMetadata('left-nav');
+  const leftNavPath = leftNavMeta ? new URL(leftNavMeta).pathname : '/left-nav';
+  
+  try {
+    console.log('Fetching navigation from:', `${leftNavPath}.plain.html`);
+    const resp = await fetch(`${leftNavPath}.plain.html`);
+    if (!resp.ok) throw new Error('Failed to load navigation');
+    
+    const html = await resp.text();
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+    
+    // Get all links from the navigation
+    const links = tempDiv.querySelectorAll('a');
+    links.forEach(link => {
+      const href = link.getAttribute('href');
+      if (href && !href.startsWith('http') && !href.startsWith('#')) {
+        urls.push(href);
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error getting page URLs:', error);
+  }
+  
+  return urls;
+}
+
+// Helper function to fetch and process page content
+async function fetchPageContent(url) {
+  try {
+    const plainUrl = `${url}${url.endsWith('.plain.html') ? '' : '.plain.html'}`;
+    const resp = await fetch(plainUrl);
+    if (!resp.ok) {
+      console.error(`Failed to fetch ${plainUrl}, status: ${resp.status}`);
+      return null;
+    }
+    
+    const html = await resp.text();
+    
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+    
+    // Get all content sections from the main content
+    const sections = tempDiv.querySelectorAll('div > div');
+    if (!sections.length) {
+      console.error('No sections found in', plainUrl);
+      return null;
+    }
+
+    // Create a wrapper for the content
+    const contentSection = document.createElement('div');
+    contentSection.className = 'pdf-section';
+    
+    // Process each section
+    sections.forEach((section, index) => {
+      if (section.classList.contains('next-button-container')) {
+        return;
+      }
+
+      const sectionClone = section.cloneNode(true);
+
+      // Clean up the section
+      const elementsToRemove = [
+        'header',
+        'footer',
+        'aside',
+        '.next-button-container',
+        '.floating-btn',
+        '.modal',
+        '.sidekick',
+        'aem-sidekick'
+      ];
+
+      elementsToRemove.forEach(selector => {
+        sectionClone.querySelectorAll(selector).forEach(el => el.remove());
+      });
+
+      // Process images
+      sectionClone.querySelectorAll('img').forEach(img => {
+        // Convert relative image paths to absolute
+        if (img.src && (img.src.startsWith('./') || img.src.startsWith('/'))) {
+          const urlParts = plainUrl.split('/');
+          urlParts.pop(); // Remove the filename
+          const basePath = urlParts.join('/');
+          img.src = img.src.replace(/^[./]+/, `${basePath}/`);
+        }
+        
+        // Process image styles
+        processImage(img);
+      });
+
+      // Add spacing between sections
+      if (index > 0) {
+        sectionClone.style.marginTop = '2em';
+      }
+
+      // Add page break hints for headings
+      sectionClone.querySelectorAll('h1, h2').forEach(heading => {
+        heading.classList.add('page-break-before');
+      });
+
+      // Prevent breaks within important elements
+      const noBreakElements = sectionClone.querySelectorAll('pre, table, .note, .tip, figure');
+      noBreakElements.forEach(elem => {
+        elem.style.pageBreakInside = 'avoid';
+        elem.style.breakInside = 'avoid';
+      });
+
+      contentSection.appendChild(sectionClone);
+    });
+    return contentSection;
+  } catch (error) {
+    console.error(`Error fetching page ${url}:`, error);
+    return null;
+  }
+}
 
 export default function downloadPdfEvent() {
   if (!isListenerAttached) {
@@ -22,10 +172,18 @@ export default function downloadPdfEvent() {
 
           try {
             isGenerating = true;
-            console.log('Starting PDF generation...');
+            const progressModal = createProgressModal();
 
             // Load PDF styles
             await loadPdfStyles();
+            updateProgress(progressModal, 'Loading pages list...');
+
+            // Get all page URLs
+            const pageUrls = await getAllPageUrls();
+            
+            if (!pageUrls.length) {
+              throw new Error('No pages found to generate PDF');
+            }
 
             // Create the main container
             const pdfContainer = document.createElement('div');
@@ -35,53 +193,32 @@ export default function downloadPdfEvent() {
             const contentWrapper = document.createElement('div');
             contentWrapper.className = 'pdf-content';
 
-            // Get all content sections
-            const sections = document.querySelectorAll('main .section > div');
-            if (sections.length) {
-              // Process each section
-              sections.forEach((section, index) => {
-                if (section.classList.contains('next-button-container')) {
-                  return; // Skip next button
-                }
+            // Fetch and process each page
+            let processedPages = 0;
+            let successfulPages = 0;
+            
+            for (const url of pageUrls) {
+              updateProgress(
+                progressModal,
+                `Processing page ${processedPages + 1} of ${pageUrls.length}...`,
+                (processedPages / pageUrls.length) * 100
+              );
 
-                const sectionClone = section.cloneNode(true);
+              const pageContent = await fetchPageContent(url);
+              if (pageContent) {
+                contentWrapper.appendChild(pageContent);
+                successfulPages++;
+              }
+              processedPages++;
+              //if (processedPages == 2) break;
+            }
 
-                // Clean up the section
-                const elementsToRemove = [
-                  'header',
-                  'footer',
-                  'aside',
-                  '.next-button-container',
-                  '.floating-btn',
-                  '.modal',
-                  '.sidekick',
-                  'aem-sidekick'
-                ];
-
-                elementsToRemove.forEach(selector => {
-                  sectionClone.querySelectorAll(selector).forEach(el => el.remove());
-                });
-
-                // Process images
-                sectionClone.querySelectorAll('img').forEach(img => {
-                  // Ensure image is loaded before PDF generation
-                  if (img.complete) {
-                    processImage(img);
-                  } else {
-                    img.onload = () => processImage(img);
-                  }
-                });
-
-                // Add spacing between sections
-                if (index > 0) {
-                  sectionClone.style.marginTop = '2em';
-                }
-
-                contentWrapper.appendChild(sectionClone);
-              });
+            if (successfulPages === 0) {
+              throw new Error('No content was successfully processed');
             }
 
             pdfContainer.appendChild(contentWrapper);
+            console.log('Final --- PDF container structure:', pdfContainer.innerHTML);
 
             // Create temporary container
             const tempContainer = document.createElement('div');
@@ -89,6 +226,8 @@ export default function downloadPdfEvent() {
             tempContainer.style.left = '-9999px';
             tempContainer.appendChild(pdfContainer);
             document.body.appendChild(tempContainer);
+
+            updateProgress(progressModal, 'Generating PDF...');
 
             // Configure PDF options
             const opt = {
@@ -110,7 +249,6 @@ export default function downloadPdfEvent() {
                 backgroundColor: '#ffffff',
                 logging: true,
                 onclone: function(clonedDoc) {
-                  // Ensure proper width for content
                   const container = clonedDoc.querySelector('.pdf-container');
                   if (container) {
                     container.style.width = '100%';
@@ -129,7 +267,6 @@ export default function downloadPdfEvent() {
                     content.style.boxSizing = 'border-box';
                     content.style.minHeight = '100%';
                   }
-
                   // Add page break hints
                   clonedDoc.querySelectorAll('h1, h2').forEach(heading => {
                     heading.classList.add('page-break-before');
@@ -141,8 +278,6 @@ export default function downloadPdfEvent() {
                     elem.style.pageBreakInside = 'avoid';
                     elem.style.breakInside = 'avoid';
                   });
-                  
-                  console.log('Document cloned and prepared for PDF generation');
                 }
               },
               jsPDF: { 
@@ -163,9 +298,17 @@ export default function downloadPdfEvent() {
 
             // Clean up
             document.body.removeChild(tempContainer);
+            document.body.removeChild(progressModal);
             
           } catch (error) {
             console.error('Error generating PDF:', error);
+            // const progressModal = document.querySelector('.pdf-progress-modal');
+            // if (progressModal) {
+            //   updateProgress(progressModal, `Error: ${error.message}`);
+            //   setTimeout(() => {
+            //     document.body.removeChild(progressModal);
+            //   }, 3000);
+            // }
           } finally {
             isGenerating = false;
           }
@@ -195,15 +338,12 @@ async function loadPdfStyles() {
 
 // Helper function to process images
 function processImage(img) {
-  img.style.maxWidth = '100%';
-  img.style.height = 'auto';
-  img.style.pageBreakInside = 'avoid';
+  img.classList.add('pdf-image');
   
   // If image is in a figure, process the figure
   const figure = img.closest('figure');
   if (figure) {
-    figure.style.pageBreakInside = 'avoid';
-    figure.style.margin = '1em 0';
+    figure.classList.add('avoid-break');
   }
 }
 
