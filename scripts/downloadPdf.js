@@ -193,20 +193,22 @@ export default function downloadPdfEvent() {
               // eslint-disable-next-line no-await-in-loop
               const canvas = await worker.toCanvas().get('canvas');
 
-              if (!pdf) {
-                // First ever canvas, use it to create the master PDF.
-                // eslint-disable-next-line no-await-in-loop
-                pdf = await worker.toPdf().get('pdf');
-              } else {
-                // We already have a PDF, just add a new page with the canvas image.
-                const imgData = canvas.toDataURL('image/png');
-                const pdfWidth = pdf.internal.pageSize.getWidth();
-                const margin = 15;
-                const pdfImageWidth = pdfWidth - margin * 2;
-                const pdfImageHeight = (canvas.height / canvas.width) * pdfImageWidth;
-
-                pdf.addPage();
-                pdf.addImage(imgData, 'PNG', margin, margin, pdfImageWidth, pdfImageHeight);
+              if (!isCanvasBlank(canvas)) {
+                if (!pdf) {
+                  // First ever canvas, use it to create the master PDF.
+                  // eslint-disable-next-line no-await-in-loop
+                  pdf = await worker.toPdf().get('pdf');
+                } else {
+                  // We already have a PDF, just add a new page with the canvas image.
+                  const imgData = canvas.toDataURL('image/png');
+                  const pdfWidth = pdf.internal.pageSize.getWidth();
+                  const margin = 15;
+                  const pdfImageWidth = pdfWidth - margin * 2;
+                  const pdfImageHeight = (canvas.height / canvas.width) * pdfImageWidth;
+  
+                  pdf.addPage();
+                  pdf.addImage(imgData, 'PNG', margin, margin, pdfImageWidth, pdfImageHeight);
+                }
               }
               
               yOffset += pageHeightInPixels;
@@ -249,4 +251,16 @@ async function loadPdfStyles() {
     });
   }
   return Promise.resolve();
+}
+
+// Helper function to check if a canvas is blank
+function isCanvasBlank(canvas) {
+  const context = canvas.getContext('2d');
+  const pixelBuffer = new Uint32Array(
+    context.getImageData(0, 0, canvas.width, canvas.height).data.buffer,
+  );
+  // Get the first pixel's value
+  const firstPixel = pixelBuffer[0];
+  // Check if all other pixels are the same as the first one
+  return !pixelBuffer.some((pixel) => pixel !== firstPixel);
 } 
