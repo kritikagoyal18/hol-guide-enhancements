@@ -1,4 +1,4 @@
-import { getMetadata } from "./aem.js";
+import { getMetadata } from './aem.js';
 
 // Flag to track if PDF generation is in progress
 let isGenerating = false;
@@ -39,7 +39,6 @@ async function getAllPageUrls() {
   const leftNavPath = leftNavMeta ? new URL(leftNavMeta).pathname : '/left-nav';
   
   try {
-    console.log('Fetching navigation from:', `${leftNavPath}.plain.html`);
     const resp = await fetch(`${leftNavPath}.plain.html`);
     if (!resp.ok) throw new Error('Failed to load navigation');
     
@@ -78,62 +77,32 @@ async function fetchPageContent(url) {
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = html;
     
-    // Create a wrapper for the content
-    const contentSection = document.createElement('div');
-    contentSection.className = 'pdf-section';
-    
-    // Get the main content container - should be the first direct child div
     const mainContent = tempDiv.querySelector(':scope > div');
     if (!mainContent) {
       console.error('No main content found in', plainUrl);
       return null;
     }
 
-    // Clean up the content before processing
     const elementsToRemove = [
-      'header',
-      'footer',
-      'aside',
-      '.next-button-container',
-      '.floating-btn',
-      '.modal',
-      '.sidekick',
-      'aem-sidekick'
+      'header', 'footer', 'aside', '.next-button-container', 
+      '.floating-btn', '.modal', '.sidekick', 'aem-sidekick'
     ];
-
     elementsToRemove.forEach(selector => {
       mainContent.querySelectorAll(selector).forEach(el => el.remove());
     });
 
-    // Process images
     mainContent.querySelectorAll('img').forEach(img => {
-      // Convert relative image paths to absolute
       if (img.src && (img.src.startsWith('./') || img.src.startsWith('/'))) {
         const urlParts = plainUrl.split('/');
-        urlParts.pop(); // Remove the filename
+        urlParts.pop();
         const basePath = urlParts.join('/');
         img.src = img.src.replace(/^[./]+/, `${basePath}/`);
       }
-      
-      // Process image styles
-      processImage(img);
     });
-
-    // Add page break hints for headings
-    mainContent.querySelectorAll('h1, h2').forEach(heading => {
-      heading.classList.add('page-break-before');
-    });
-
-    // Prevent breaks within important elements
-    const noBreakElements = mainContent.querySelectorAll('pre, table, .note, .tip, figure');
-    noBreakElements.forEach(elem => {
-      elem.style.pageBreakInside = 'avoid';
-      elem.style.breakInside = 'avoid';
-    });
-
-    // Append the processed content
-    contentSection.appendChild(mainContent);
     
+    const contentSection = document.createElement('div');
+    contentSection.className = 'pdf-section';
+    contentSection.appendChild(mainContent);
     return contentSection;
   } catch (error) {
     console.error(`Error fetching page ${url}:`, error);
@@ -142,172 +111,129 @@ async function fetchPageContent(url) {
 }
 
 export default function downloadPdfEvent() {
-  if (!isListenerAttached) {
-    document.addEventListener('DOMContentLoaded', () => {
-      setTimeout(() => {
-        document.dispatchEvent(new Event('sidekick-ready'));
-      }, 3000);
-    });
+  if (isListenerAttached) {
+    return;
+  }
+  isListenerAttached = true;
 
-    document.addEventListener('sidekick-ready', () => {
-      const sidekick = document.querySelector('aem-sidekick');
-      if (sidekick && !isListenerAttached) {
-        sidekick.addEventListener('custom:downloadPdf', async () => {
-          if (isGenerating) {
-            console.log('PDF generation already in progress');
-            return;
-          }
+  document.addEventListener('sidekick-ready', () => {
+    const sidekick = document.querySelector('aem-sidekick');
+    if (!sidekick) return;
+
+    sidekick.addEventListener('custom:downloadPdf', async () => {
+      if (isGenerating) {
+        console.log('PDF generation already in progress');
+        return;
+      }
+      isGenerating = true;
+
+      const progressModal = createProgressModal();
+      try {
+        await loadPdfStyles();
+        updateProgress(progressModal, 'Loading pages list...');
+        const pageUrls = await getAllPageUrls();
+        if (!pageUrls.length) {
+          throw new Error('No pages found to generate PDF');
+        }
+
+        let pdf;
+        let processedPages = 0;
+        const totalPages = pageUrls.length;
+
+        for (const url of pageUrls) {
+          processedPages++;
+          updateProgress(
+            progressModal,
+            `Processing page ${processedPages} of ${totalPages}...`,
+            (processedPages / totalPages) * 100,
+          );
 
           try {
-            isGenerating = true;
-            const progressModal = createProgressModal();
-
-            // Load PDF styles
-            await loadPdfStyles();
-            updateProgress(progressModal, 'Loading pages list...');
-
-            // Get all page URLs
-            const pageUrls = await getAllPageUrls();
-            console.log('Pages to be included in PDF:', pageUrls);
-            
-            if (!pageUrls.length) {
-              throw new Error('No pages found to generate PDF');
+            // eslint-disable-next-line no-await-in-loop
+            const pageContent = await fetchPageContent(url);
+            if (!pageContent) {
+              // eslint-disable-next-line no-continue
+              continue;
             }
 
-            // Create the main container
             const pdfContainer = document.createElement('div');
             pdfContainer.className = 'pdf-container';
-
-            // Create content wrapper
-            const contentWrapper = document.createElement('div');
-            contentWrapper.className = 'pdf-content';
-
-            // Fetch and process each page
-            let processedPages = 0;
-            let successfulPages = 0;
-            
-            for (const url of pageUrls) {
-              updateProgress(
-                progressModal,
-                `Processing page ${processedPages + 1} of ${pageUrls.length}...`,
-                (processedPages / pageUrls.length) * 100
-              );
-
-              const pageContent = await fetchPageContent(url);
-              if (pageContent) {
-                contentWrapper.appendChild(pageContent);
-                successfulPages++;
-              }
-              processedPages++;
-              // if (processedPages == 2) break;
-            }
-
-            if (successfulPages === 0) {
-              throw new Error('No content was successfully processed');
-            }
-
-            pdfContainer.appendChild(contentWrapper);
-
-            // Create temporary container
+            pdfContainer.appendChild(pageContent);
             const tempContainer = document.createElement('div');
             tempContainer.style.position = 'absolute';
             tempContainer.style.left = '-9999px';
+            tempContainer.style.width = '210mm'; // A4 paper width
             tempContainer.appendChild(pdfContainer);
             document.body.appendChild(tempContainer);
 
-            updateProgress(progressModal, 'Generating PDF...');
+            const A4_RATIO = 297 / 210;
+            const contentWidth = pdfContainer.clientWidth;
+            const pageHeightInPixels = contentWidth * A4_RATIO;
+            const contentHeight = pdfContainer.scrollHeight;
 
-            // Configure PDF options
-            const opt = {
-              margin: 15,
-              filename: 'guide.pdf',
-              pagebreak: {
-                mode: ['css', 'legacy'],
-                avoid: ['tr', 'img', 'pre', 'table', '.note', '.tip', 'figure'],
-                after: ['.page-break-after'],
-                before: ['.page-break-before']
-              },
-              html2canvas: { 
-                scale: 2,
-                useCORS: true,
-                letterRendering: true,
-                scrollY: 0,
-                windowWidth: document.documentElement.clientWidth,
-                windowHeight: document.documentElement.scrollHeight,
-                backgroundColor: '#ffffff',
-                logging: true,
-                onclone: function(clonedDoc) {
-                  const container = clonedDoc.querySelector('.pdf-container');
-                  if (container) {
-                    container.style.width = '100%';
-                    container.style.maxWidth = 'none';
-                    container.style.margin = '0';
-                    container.style.padding = '0';
-                    container.style.minHeight = '100%';
-                  }
-                  
-                  // Ensure content is not cut off
-                  const content = clonedDoc.querySelector('.pdf-content');
-                  if (content) {
-                    content.style.width = '100%';
-                    content.style.margin = '0';
-                    content.style.padding = '15px';
-                    content.style.boxSizing = 'border-box';
-                    content.style.minHeight = '100%';
-                  }
-                  // Add page break hints
-                  clonedDoc.querySelectorAll('h1, h2').forEach(heading => {
-                    heading.classList.add('page-break-before');
-                  });
+            let yOffset = 0;
+            while (yOffset < contentHeight) {
+              const remainingHeight = contentHeight - yOffset;
+              const captureHeight = Math.min(pageHeightInPixels, remainingHeight);
 
-                  // Prevent breaks within important elements
-                  const noBreakElements = clonedDoc.querySelectorAll('pre, table, .note, .tip, figure');
-                  noBreakElements.forEach(elem => {
-                    elem.style.pageBreakInside = 'avoid';
-                    elem.style.breakInside = 'avoid';
-                  });
-                }
-              },
-              jsPDF: { 
-                unit: 'mm',
-                format: 'a4',
-                orientation: 'portrait',
-                compress: true,
-                hotfixes: ['px_scaling'],
-                enableLinks: true
+              const options = {
+                html2canvas: {
+                  scale: 2,
+                  useCORS: true,
+                  letterRendering: true,
+                  backgroundColor: '#ffffff',
+                  y: yOffset,
+                  height: captureHeight,
+                  windowHeight: contentHeight,
+                },
+              };
+
+              // eslint-disable-next-line no-await-in-loop
+              const worker = window.html2pdf().from(pdfContainer).set(options);
+              // eslint-disable-next-line no-await-in-loop
+              const canvas = await worker.toCanvas().get('canvas');
+
+              if (!pdf) {
+                // First ever canvas, use it to create the master PDF.
+                // eslint-disable-next-line no-await-in-loop
+                pdf = await worker.toPdf().get('pdf');
+              } else {
+                // We already have a PDF, just add a new page with the canvas image.
+                const imgData = canvas.toDataURL('image/png');
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const margin = 15;
+                const pdfImageWidth = pdfWidth - margin * 2;
+                const pdfImageHeight = (canvas.height / canvas.width) * pdfImageWidth;
+
+                pdf.addPage();
+                pdf.addImage(imgData, 'PNG', margin, margin, pdfImageWidth, pdfImageHeight);
               }
-            };
-
-            // Generate PDF
-            await html2pdf()
-              .set(opt)
-              .from(pdfContainer)
-              .save();
-
-            // Clean up
-            console.log('tempContainer', tempContainer);
+              
+              yOffset += pageHeightInPixels;
+            }
             document.body.removeChild(tempContainer);
-            document.body.removeChild(progressModal);
-            
-          } catch (error) {
-            console.error('Error generating PDF:', error);
-            // const progressModal = document.querySelector('.pdf-progress-modal');
-            // if (progressModal) {
-            //   updateProgress(progressModal, `Error: ${error.message}`);
-            //   setTimeout(() => {
-            //     document.body.removeChild(progressModal);
-            //   }, 3000);
-            // }
-          } finally {
-            isGenerating = false;
+          } catch (e) {
+            console.error(`Failed to process page: ${url}`, e);
           }
-        });
+        }
 
-        isListenerAttached = true;
-        console.log('PDF download event listener attached');
+        if (pdf) {
+          updateProgress(progressModal, 'Saving PDF...');
+          pdf.save('guide.pdf');
+        } else {
+          throw new Error('No content was successfully processed into the PDF.');
+        }
+      } catch (error) {
+        console.error('Error generating PDF:', error);
+      } finally {
+        isGenerating = false;
+        const modal = document.querySelector('.pdf-progress-modal');
+        if (modal) {
+          document.body.removeChild(modal);
+        }
       }
     });
-  }
+  });
 }
 
 // Helper function to load PDF styles
@@ -323,16 +249,4 @@ async function loadPdfStyles() {
     });
   }
   return Promise.resolve();
-}
-
-// Helper function to process images
-function processImage(img) {
-  img.classList.add('pdf-image');
-  
-  // If image is in a figure, process the figure
-  const figure = img.closest('figure');
-  if (figure) {
-    figure.classList.add('avoid-break');
-  }
-}
-
+} 
