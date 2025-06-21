@@ -87,7 +87,7 @@ export default function downloadPdfEvent() {
       
       // Update status to "Complete!"
       const statusEl = progressModal.querySelector('.pdf-progress-status');
-      if (statusEl) statusEl.textContent = 'Complete!';
+      if (statusEl) statusEl.textContent = 'Done!';
 
     } catch (error) {
       console.error('Error generating PDF:', error);
