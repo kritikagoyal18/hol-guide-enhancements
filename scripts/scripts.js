@@ -108,31 +108,16 @@ function buildAutoBlocks(main) {
  */
 function replacePlaceholders(main) {
   const config = window.config;
-  if (!config || Object.keys(config).length === 0) {
-    console.warn('Config not loaded or is empty, cannot replace placeholders.');
+  if (!config) {
+    console.warn('Config not loaded, cannot replace placeholders.');
     return;
   }
 
-  const regex = /{([^{}]+)}/g;
-
+  // Iterate over each section to be more targeted
   main.querySelectorAll('.section').forEach((section) => {
-    const walker = document.createTreeWalker(section, NodeFilter.SHOW_TEXT, null, false);
-    const textNodes = [];
-    let node;
-    while (node = walker.nextNode()) {
-      textNodes.push(node);
-    }
-
-    textNodes.forEach((textNode) => {
-      const oldValue = textNode.nodeValue;
-      const newValue = oldValue.replace(regex, (match, key) => {
-        const trimmedKey = key.trim();
-        return config[trimmedKey] || match;
-      });
-
-      if (newValue !== oldValue) {
-        textNode.nodeValue = newValue;
-      }
+    section.innerHTML = section.innerHTML.replace(/{([^{}]+)}/g, (match, key) => {
+      const trimmedKey = key.trim();
+      return config[trimmedKey] || match;
     });
   });
 }
@@ -148,7 +133,6 @@ export function decorateMain(main) {
   decorateIcons(main);
   buildAutoBlocks(main);
   decorateSections(main);
-  // Replace placeholders AFTER sections are decorated, but BEFORE blocks are.
   replacePlaceholders(main);
   decorateBlocks(main);
 }
