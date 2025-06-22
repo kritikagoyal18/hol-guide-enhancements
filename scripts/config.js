@@ -1,26 +1,35 @@
 import { getMetadata } from "./aem.js";
 
+/**
+ * Fetches and caches the project's configuration from a JSON file.
+ * The JSON file is expected to be at '/config.json' unless overridden by a 'config' metadata tag.
+ * The configuration is stored in a global `window.config` object.
+ * @returns {Promise<object>} A promise that resolves to the configuration object.
+ */
 export default async function initConfig() {
-    let configMeta;
-    try {
-        configMeta = getMetadata('config');
-        const analyticsFilePath = configMeta ? new URL(configMeta).pathname : '/config';
-        const resp = await fetch(`${analyticsFilePath}.json`);
-        if (resp.ok) {
-            const jsonText = await resp.text();
-            const configObjects = JSON.parse(jsonText);
-            let config = {};
-            const data = {};
+    // Return cached config if available
+    if (window.config) {
+        return window.config;
+    }
 
-            configObjects.data.forEach(item => {
-                data[item.Config] = item.Value;
+    try {
+        const configMeta = getMetadata('config');
+        const configPath = configMeta ? new URL(configMeta).pathname : '/config';
+        const resp = await fetch(`${configPath}.json`);
+        if (resp.ok) {
+            const json = await resp.json();
+            const cfg = {};
+            json.data.forEach((item) => {
+                cfg[item.Config] = item.Value;
             });
-            config = data;
-            window.config = config;
-            return config;
+            window.config = cfg;
+            return window.config;
         }
     } catch (error) {
-        console.error('Error fetching metadata:', error);
+        console.error('Failed to fetch or parse project config:', error);
     }
-    
+
+    // Return empty config object in case of failure
+    window.config = {};
+    return window.config;
 }

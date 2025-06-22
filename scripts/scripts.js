@@ -103,6 +103,41 @@ function buildAutoBlocks(main) {
 }
 
 /**
+ * Replaces placeholders with values from the config.
+ * @param {Element} main The container element
+ */
+function replacePlaceholders(main) {
+  const config = window.config;
+  if (!config || Object.keys(config).length === 0) {
+    console.warn('Config not loaded or is empty, cannot replace placeholders.');
+    return;
+  }
+
+  const regex = /{([^{}]+)}/g;
+
+  main.querySelectorAll('.section').forEach((section) => {
+    const walker = document.createTreeWalker(section, NodeFilter.SHOW_TEXT, null, false);
+    const textNodes = [];
+    let node;
+    while (node = walker.nextNode()) {
+      textNodes.push(node);
+    }
+
+    textNodes.forEach((textNode) => {
+      const oldValue = textNode.nodeValue;
+      const newValue = oldValue.replace(regex, (match, key) => {
+        const trimmedKey = key.trim();
+        return config[trimmedKey] || match;
+      });
+
+      if (newValue !== oldValue) {
+        textNode.nodeValue = newValue;
+      }
+    });
+  });
+}
+
+/**
  * Decorates the main element.
  * @param {Element} main The main element
  */
@@ -113,6 +148,8 @@ export function decorateMain(main) {
   decorateIcons(main);
   buildAutoBlocks(main);
   decorateSections(main);
+  // Replace placeholders AFTER sections are decorated, but BEFORE blocks are.
+  replacePlaceholders(main);
   decorateBlocks(main);
 }
 
@@ -123,6 +160,8 @@ export function decorateMain(main) {
 async function loadEager(doc) {
   document.documentElement.lang = 'en';
   decorateTemplateAndTheme();
+  // Load config early for placeholder replacement
+  await initConfig();
   const main = doc.querySelector('main');
   if (main) {
     decorateMain(main);
@@ -176,7 +215,6 @@ async function loadLazy(doc) {
     initFullscreenImage();
   }
   initAnalytics();
-  initConfig();
 }
 
 /**
