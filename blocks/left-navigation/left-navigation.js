@@ -5,6 +5,29 @@ import { decorateButtons, decorateIcons, getMetadata } from "../../scripts/aem.j
  * @param {Element} block The aside block element
  */
 
+/**
+ * Returns the correct caret icon path based on direction and theme.
+ * @param {'down'|'right'} direction
+ */
+function getCaretIcon(direction) {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  if (direction === 'down') {
+    return isDark ? '/icons/icon-caret-down-white.svg' : '/icons/icon-caret-down.svg';
+  }
+  return isDark ? '/icons/icon-caret-right-white.svg' : '/icons/icon-caret-right.svg';
+}
+
+function updateAllCarets() {
+  // Update all carets in the left navigation based on the current theme
+  document.querySelectorAll('.left-navigation img').forEach(img => {
+    if (img.src.includes('caret-down')) {
+      img.src = getCaretIcon('down');
+    } else if (img.src.includes('caret-right')) {
+      img.src = getCaretIcon('right');
+    }
+  });
+}
+
 function loadDropdowns(){
   const paragraphs = document.querySelectorAll('.left-navigation p');
     paragraphs.forEach(paragraph => {
@@ -14,10 +37,10 @@ function loadDropdowns(){
       // Toggle the 'hidden' class to show/hide the dropdown
         if (dropdown.style.display === 'none' || dropdown.style.display === '') {
           dropdown.style.display = 'block';
-          paragraph.querySelector('img').src = "/icons/caret-down.svg";
+          paragraph.querySelector('img').src = getCaretIcon('down');
         } else {
           dropdown.style.display = 'none';
-          paragraph.querySelector('img').src = "/icons/caret-right.svg";
+          paragraph.querySelector('img').src = getCaretIcon('right');
         }
       }
     });
@@ -35,14 +58,14 @@ function loadDropdowns(){
       siblingsParagraphs.forEach(sibling => {
         if (sibling.style.display === 'none' || sibling.style.display === '') {
           sibling.style.display = 'block';
-          sectionToggleIcon.src = "/icons/caret-down.svg";
+          sectionToggleIcon.src = getCaretIcon('down');
           hidden = false;
         } else {
           sibling.style.display = 'none';
           const siblingImage = sibling.querySelector('img');
           if(siblingImage){
-            siblingImage.src = "/icons/caret-right.svg";
-            sectionToggleIcon.src = "/icons/caret-right.svg";
+            siblingImage.src = getCaretIcon('right');
+            sectionToggleIcon.src = getCaretIcon('right');
           }
           hidden = true;
         }
@@ -77,7 +100,7 @@ function loadActiveLinks(){
     const activeParagraph = activeContainer.previousElementSibling;
     let dropdownIcon = activeParagraph.querySelector('img');
     if(dropdownIcon){
-      dropdownIcon.src = "/icons/caret-down.svg";
+      dropdownIcon.src = getCaretIcon('down');
     }
     if (activeContainer.tagName === "UL") {
       activeContainer.style.display = "block";
@@ -93,10 +116,16 @@ function loadActiveLinks(){
     });
     let dropdownIcon = activeSectionHeader.querySelector('img');
     if(dropdownIcon){
-      dropdownIcon.src = "/icons/caret-down.svg";
+      dropdownIcon.src = getCaretIcon('down');
     }
   }
 }
+
+// Listen for theme changes and update carets
+const observer = new MutationObserver(() => {
+  updateAllCarets();
+});
+observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
 export default async function decorate(block) {
   // fetch aside content
@@ -111,5 +140,6 @@ export default async function decorate(block) {
   decorateButtons(block);
   loadDropdowns();
   loadActiveLinks();
+  updateAllCarets(); // Ensure correct icons on initial load
   const leftNavigationWrapper = document.querySelector('.left-navigation-wrapper');
 }
