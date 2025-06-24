@@ -16,6 +16,12 @@ export default function initFullscreenImage() {
     const clickedImage = event.target.closest('img');
     if (!clickedImage) return;
 
+    // Only trigger if the image is inside a .section within <main>
+    const main = document.querySelector('main');
+    if (!main) return;
+    const section = clickedImage.closest('.section');
+    if (!section || !main.contains(section)) return;
+
     // Remove query parameters from the image src
     const url = new URL(clickedImage.src, window.location.origin);
     const cleanSrc = url.origin + url.pathname;
