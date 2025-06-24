@@ -16,8 +16,10 @@ export default function initFullscreenImage() {
     const clickedImage = event.target.closest('img');
     if (!clickedImage) return;
 
-    // Set the modal image source and show modal
-    modalImage.src = clickedImage.src;
+    // Remove query parameters from the image src
+    const url = new URL(clickedImage.src, window.location.origin);
+    const cleanSrc = url.origin + url.pathname;
+    modalImage.src = cleanSrc;
     modalImage.alt = clickedImage.alt;
     modal.classList.add('active');
     document.body.style.overflow = 'hidden'; // Disable scrolling
