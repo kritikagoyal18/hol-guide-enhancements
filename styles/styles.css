@@ -489,23 +489,6 @@ form button:focus {
     --header-hover-bg: #333333;
     --header-border: #444444;
 
-    /* Exception for tip and note blocks */
-    .tip p,
-    .tip strong,
-    .note p,
-    .note strong {
-        color: #323232 !important; /* Using !important to ensure it overrides any other dark theme styles */
-    }
-
-    /* Preserve the original background colors */
-    .tip {
-        background-color: #ffeddf !important;
-    }
-
-    .note {
-        background-color: #d9edf7 !important;
-    }
-
     /* Ensure borders are visible in dark mode */
     .tip,
     .note {
@@ -649,4 +632,14 @@ form button:focus {
 
 main .section img:hover {
   cursor: pointer;
+}
+
+html[data-theme="dark"] .tip {
+  background-color: #4a3325 !important; /* complementary to #ffeddf */
+  color: #fff !important;
+}
+
+html[data-theme="dark"] .note {
+  background-color: #264653 !important; /* complementary to #d9edf7 */
+  color: #fff !important;
 }
