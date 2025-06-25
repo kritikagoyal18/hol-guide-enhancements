@@ -646,3 +646,7 @@ form button:focus {
 [data-theme="dark"] .theme-toggle img {
     filter: invert(1);
 }
+
+main .section img:hover {
+  cursor: pointer;
+}
